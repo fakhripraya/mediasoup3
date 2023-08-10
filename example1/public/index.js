@@ -6,11 +6,6 @@ const roomName = window.location.pathname.split('/')[2]
 
 const socket = io("/mediasoup")
 
-socket.on('connection-success', ({ socketId }) => {
-  console.log(socketId)
-  getLocalStream()
-})
-
 let device
 let rtpCapabilities
 let producerTransport
@@ -73,6 +68,7 @@ const joinRoom = () => {
 }
 
 const getLocalStream = () => {
+  console.log("Getting local stream...")
   navigator.mediaDevices.getUserMedia({
     audio: true,
     video: {
@@ -86,10 +82,10 @@ const getLocalStream = () => {
       }
     }
   })
-  .then(streamSuccess)
-  .catch(error => {
-    console.log(error.message)
-  })
+    .then(streamSuccess)
+    .catch(error => {
+      console.log(error.message)
+    })
 }
 
 // A device is an endpoint connecting to a Router on the
@@ -188,7 +184,7 @@ const connectSendTransport = async () => {
   // to send media to the Router
   // https://mediasoup.org/documentation/v3/mediasoup-client/api/#transport-produce
   // this action will trigger the 'connect' and 'produce' events above
-  
+
   audioProducer = await producerTransport.produce(audioParams);
   videoProducer = await producerTransport.produce(videoParams);
 
@@ -203,7 +199,7 @@ const connectSendTransport = async () => {
 
     // close audio track
   })
-  
+
   videoProducer.on('trackended', () => {
     console.log('video track ended')
 
@@ -262,9 +258,6 @@ const signalNewConsumerTransport = async (remoteProducerId) => {
     connectRecvTransport(consumerTransport, remoteProducerId, params.id)
   })
 }
-
-// server informs the client of a new producer just joined
-socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId))
 
 const getProducers = () => {
   socket.emit('getProducers', producerIds => {
@@ -334,6 +327,14 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
     socket.emit('consumer-resume', { serverConsumerId: params.serverConsumerId })
   })
 }
+
+socket.on('connection-success', ({ socketId }) => {
+  console.log("socketId: " + socketId)
+  getLocalStream()
+})
+
+// server informs the client of a new producer just joined
+socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId))
 
 socket.on('producer-closed', ({ remoteProducerId }) => {
   // server notification is received when a producer is closed
