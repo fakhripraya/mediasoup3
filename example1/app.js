@@ -6,13 +6,12 @@
 /* https://mediasoup.org/documentation/v3/mediasoup/installation/ */
 // import fs from 'fs'
 import express from 'express'
-import http from 'http'
+import https from 'httpolyglot'
 import path from 'path'
 import { Server } from 'socket.io'
 import mediasoup from 'mediasoup'
 const app = express()
 const __dirname = path.resolve()
-var httpServer = http.Server(app);
 
 app.get('*', (req, res, next) => {
   const path = '/sfu/'
@@ -25,16 +24,17 @@ app.get('*', (req, res, next) => {
 app.use('/sfu/:room', express.static(path.join(__dirname, 'public')))
 
 // SSL cert for HTTPS access
-// const options = {
-//   key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-//   cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-// }
+const options = {
+  key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+  cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+}
 
-var server = httpServer.listen(3000, () => {
-  console.log('listening on port: ' + server.address().port)
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(3000, () => {
+  console.log('listening on port: ' + httpsServer.address().port)
 })
 
-const io = new Server(httpServer)
+const io = new Server(httpsServer)
 
 // socket.io namespace (could represent a room?)
 const connections = io.of('/mediasoup')
