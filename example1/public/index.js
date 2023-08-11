@@ -312,7 +312,7 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
     } else {
       //append to the video container
       newElem.setAttribute('class', 'remoteVideo')
-      newElem.innerHTML = '<video id="' + remoteProducerId + '" autoplay class="video" ></video>'
+      newElem.innerHTML = '<video id="' + remoteProducerId + '" playsInline autoplay class="video" ></video>'
     }
 
     videoContainer.appendChild(newElem)
